@@ -18,7 +18,7 @@
         return { x: Math.cos(roty), z: Math.sin(roty) };
     };
 
-    useFrame((props, delta) => {
+    useFrame((state, delta) => {
       if (airplane.current) {
         const { x, z } = rotationMatrix(airplane.current.rotation?.y || 0);
         airplane.current.position.x += velocity.current * delta * x;
