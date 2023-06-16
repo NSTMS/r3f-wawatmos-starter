@@ -3,6 +3,7 @@
   Command: npx gltfjsx@6.2.3 src/assets/Airplane.glb
   */
   import { OrbitControls } from '@react-three/drei';
+  const ws = new WebSocket('ws://192.168.43.17:1337');
 
   import React, { useEffect, useRef } from 'react'
   import { useGLTF } from '@react-three/drei'
@@ -12,6 +13,8 @@
   const speed = .1;
   let keyPressed ={}
   export const Airplane = ({airplane}) => {
+    const [acc, setAcc] = React.useState({x: 0, y: 0})
+
     const velocity = useRef(0);
 
     const rotationMatrix = (roty) => {
@@ -20,40 +23,47 @@
 
     useFrame((state, delta) => {
       if (airplane.current) {
-        const { x, z } = rotationMatrix(airplane.current.rotation?.y || 0);
+        airplane.current.rotation.y += acc.x * delta;
+        velocity.current -= acc.y * delta * 4;
+        const { x, z } = rotationMatrix(airplane.current.rotation.y || 0);
+
         airplane.current.position.x += velocity.current * delta * x;
         airplane.current.position.z += velocity.current * delta * -z;
-        velocity.current -= speed / 10;
+        velocity.current -= speed * 0.1 * delta; // opór powietrza
       }
     });
+    ws.onmessage = (e) => {
+      let data = JSON.parse(e.data)
+      setAcc({x: data.x, y: data.y})
+      console.log(data);
+    }
+    // useEffect(() => {
+    //   document.addEventListener("keydown", (event) => {
+    //     keyPressed[event.key] = true;
+    //   });
+    //   document.addEventListener("keyup", (event) => {
+    //     delete keyPressed[event.key];
+    //   });
 
-    useEffect(() => {
-      document.addEventListener("keydown", (event) => {
-        keyPressed[event.key] = true;
-      });
-      document.addEventListener("keyup", (event) => {
-        delete keyPressed[event.key];
-      });
-
-      document.addEventListener("keydown", (e) => {
-        if (keyPressed["ArrowUp"]) {
-          velocity.current += velocity.current >= maxSpeed ? 0 : speed;
-        }
-        if (keyPressed["ArrowDown"]) {
-          velocity.current -= velocity.current <= 0 ? 0 : 2 * speed;
-        }
-        if (keyPressed["ArrowLeft"]) {
-          airplane.current.rotation.y += 0.05;
-          if (airplane.current.rotation.y > Math.PI)
-            airplane.current.rotation.y = -Math.PI;
-        }
-        if (keyPressed["ArrowRight"]) {
-          airplane.current.rotation.y -= 0.05;
-          if (airplane.current.rotation.y < -Math.PI)
-            airplane.current.rotation.y = Math.PI;
-        }
-      });
-    }, []);
+    //   document.addEventListener("keydown", (e) => {
+    //     if (keyPressed["ArrowUp"]) {
+    //       velocity.current += velocity.current >= maxSpeed ? 0 : speed;
+    //     }
+    //     if (keyPressed["ArrowDown"]) {
+    //       velocity.current -= velocity.current <= 0 ? 0 : 2 * speed;
+    //     }
+    //     if (keyPressed["ArrowLeft"]) {
+    //       airplane.current.rotation.y += 0.05;
+    //       if (airplane.current.rotation.y > Math.PI)
+    //         airplane.current.rotation.y = -Math.PI;
+    //     }
+    //     if (keyPressed["ArrowRight"]) {
+    //       airplane.current.rotation.y -= 0.05;
+    //       if (airplane.current.rotation.y < -Math.PI)
+    //         airplane.current.rotation.y = Math.PI;
+    //     }
+    //   });
+    // }, []);
 
     const { nodes, materials } = useGLTF("src/assets/Airplane.glb");
 

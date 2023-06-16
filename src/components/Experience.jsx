@@ -22,7 +22,7 @@ export const Experience = () => {
         <Airplane airplane={airplane} />
       {/* </Float> */}
       <group>
-        {new Array(200).fill(0).map((_, ind) => {
+        {new Array(400).fill(0).map((_, ind) => {
           return <Clouds key={ind} />;
         })}
       </group>
